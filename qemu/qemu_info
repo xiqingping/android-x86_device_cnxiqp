@@ -1,0 +1,11 @@
+set -x
+
+qemu_info()
+{
+    return 1
+}
+
+detect_hardware()
+{
+   qemu_info
+}

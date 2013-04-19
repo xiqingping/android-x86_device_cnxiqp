@@ -1,0 +1,2 @@
+add_lunch_combo inspiron1420-eng
+add_lunch_combo inspiron1420-userdebug

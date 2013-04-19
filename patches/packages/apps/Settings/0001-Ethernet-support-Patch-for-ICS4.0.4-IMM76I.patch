@@ -1,0 +1,934 @@
+From 076e92066fbd3c69af8e2427a248c009c8328eb2 Mon Sep 17 00:00:00 2001
+From: Ron Munitz <ron@nubosoftware.com>
+Date: Mon, 16 Jul 2012 13:24:22 +0300
+Subject: [PATCH] Ethernet support Patch for ICS4.0.4 (IMM76I)
+
+---
+ AndroidManifest.xml                                |   35 ++++
+ res/drawable-hdpi/ic_settings_ethernet.png         |  Bin 0 -> 946 bytes
+ res/drawable-mdpi/ic_settings_ethernet.png         |  Bin 0 -> 946 bytes
+ res/drawable/ic_settings_ethernet.xml              |   21 ++
+ res/layout/eth_configure.xml                       |  112 ++++++++++
+ res/values/strings.xml                             |   19 ++
+ res/xml/ethernet_settings.xml                      |   31 +++
+ res/xml/settings_headers.xml                       |    7 +
+ .../settings/ethernet/EthernetConfigDialog.java    |  214 ++++++++++++++++++++
+ .../android/settings/ethernet/EthernetEnabler.java |  172 ++++++++++++++++
+ .../android/settings/ethernet/EthernetLayer.java   |   68 ++++++
+ .../settings/ethernet/EthernetSettings.java        |   92 +++++++++
+ 12 files changed, 771 insertions(+), 0 deletions(-)
+ create mode 100644 res/drawable-hdpi/ic_settings_ethernet.png
+ create mode 100644 res/drawable-mdpi/ic_settings_ethernet.png
+ create mode 100644 res/drawable/ic_settings_ethernet.xml
+ create mode 100644 res/layout/eth_configure.xml
+ create mode 100644 res/xml/ethernet_settings.xml
+ create mode 100644 src/com/android/settings/ethernet/EthernetConfigDialog.java
+ create mode 100644 src/com/android/settings/ethernet/EthernetEnabler.java
+ create mode 100644 src/com/android/settings/ethernet/EthernetLayer.java
+ create mode 100644 src/com/android/settings/ethernet/EthernetSettings.java
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index cfa92b0..e1059d2 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -88,6 +88,41 @@
+             </intent-filter>
+         </activity>
+ 
++         <!-- Ethernet controls -->
++        <activity android:name="EthernetSettings"
++                android:label="@string/eth_radio_ctrl_title">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <action android:name="android.settings.ETHERNET_SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.VOICE_LAUNCH" />
++            </intent-filter>
++        </activity>
++
++        <activity android:name=".ethernet.EthernetEnabler"
++                android:label="@string/eth_setting"
++                android:clearTaskOnLaunch="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <action android:name="android.settings.ETHERNET_SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.VOICE_LAUNCH" />
++                <category android:name="com.android.settings.SHORTCUT" />
++            </intent-filter>
++        </activity>
++
++        <activity android:name=".ethernet.EthernetConfigure"
++                android:label="@string/eth_conf_perf_title"
++                android:clearTaskOnLaunch="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <action android:name="android.settings.ETHERNET_SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.VOICE_LAUNCH" />
++                <category android:name="com.android.settings.SHORTCUT" />
++            </intent-filter>
++        </activity>
++
+         <!-- Wireless Controls -->
+ 
+         <activity android:name="Settings$WirelessSettingsActivity"
+diff --git a/res/drawable-hdpi/ic_settings_ethernet.png b/res/drawable-hdpi/ic_settings_ethernet.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7e5f923402682119d69f855e74e115a48a964afd
+GIT binary patch
+literal 946
+zcmV;j15NyiP)<h;3K|Lk000e1NJLTq001BW001Be1^@s6b9#F800001b5ch_0Itp)
+z=>Px#24YJ`L;(K){{a7>y{D4^000SaNLh0L01FcU01FcV0GgZ_00007bV*G`2iXiB
+z0|YKMFI;#400S~fL_t(o!|m74Yg|<n2k_6Enb@QamM+p<YeLPYLcw2PQNbTeDX!{H
+zT&M`5YtcWzZ8z>k1r@h~pe|f!aUnucK}D*?pRIX_F^#pxW+rpooPozUlg!kmx$t<*
+zd-t9Dz32Nq-+P9=@qZuHv>!yo3hu@-+7rYGY~vE%t*Yum^JV86K;Mq%u!3{wjR6sP
+zU56X758vTG1L)unyn)l0#au2n$ZF($GXb8$lW2_!b}i#?tmdvB#Zh!e#9qZ)xR~Em
+z69b5de@(8cYLM0*`Z$7<I9}Ivuau&$Yk6;%QqJS61|@a{5D|y4I4WHcv4I<KC`GuA
+z!#FUsxKawtrv`dE@i{zBrpN|-HZ!r63ohbjJcK2v>pDs))ewk&R)A>$Ea&wKe#`((
+zAd!4mS%ynERZ2OQX|Ea?m`KsXqlF*vaxSo(^R|Z+-fxuDEp=TV8<Bw)W-@azN(Y@W
+z=Cp~cSw0VDnROdkXeFQz@isO~DVK1il+r_0N@*v+b?i?d)ih;z5O?6-x~@lwtdGC&
+zK?3?3@8j3>hBnslCGHyMn4KLgIx-8rF$(V`fB_}H;hU`e{S6CV!2-_YyQz#Q5W|b7
+z;+vkZjR$aBQq^hz3w(i>@cpy^s^oJx1B0q)HGt07b$xI!2ho^+J+9!Vq-s|H1N8gQ
+z8Ib{{lun9sCV`wSrJTW9DP=a}baUQ4xDT&S0${MS%lH(BODS_1tiqtYw(&`N{Cw)+
+z9Dc!phDPR62PYEjt`ux$-L~*vs<`O`8XRB9XIF6?k0kI;zVD|MA5982CjoFaRr@eD
+z8mC<IZ0P60H|6d>!_T?%f$)ytew@eW_%=1LYsa$?5l=_N<%o#Y)z#SP9ueyi@oYpa
+z48=JS5g$jyGZ8U6aZ45vkK={push;FY96hF6jyi^?_}#$;Z8iC&tI#mYGYC(T1*#v
+zF^!{>zhme?iqy&yp2B0eHM^xYN(yjmTraR&8Ad}$)rh7dhOU{k;BLnK6CWk_Thjno
+z&tOlC5#TU@*|gp_v;A5dvhv?|0x(Jg%h_zSCurXXv~*ML7pto3?fu)?8`F$`0OHMc
+Uu>{dYKL7v#07*qoM6N<$f}dlntpET3
+
+literal 0
+HcmV?d00001
+
+diff --git a/res/drawable-mdpi/ic_settings_ethernet.png b/res/drawable-mdpi/ic_settings_ethernet.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7e5f923402682119d69f855e74e115a48a964afd
+GIT binary patch
+literal 946
+zcmV;j15NyiP)<h;3K|Lk000e1NJLTq001BW001Be1^@s6b9#F800001b5ch_0Itp)
+z=>Px#24YJ`L;(K){{a7>y{D4^000SaNLh0L01FcU01FcV0GgZ_00007bV*G`2iXiB
+z0|YKMFI;#400S~fL_t(o!|m74Yg|<n2k_6Enb@QamM+p<YeLPYLcw2PQNbTeDX!{H
+zT&M`5YtcWzZ8z>k1r@h~pe|f!aUnucK}D*?pRIX_F^#pxW+rpooPozUlg!kmx$t<*
+zd-t9Dz32Nq-+P9=@qZuHv>!yo3hu@-+7rYGY~vE%t*Yum^JV86K;Mq%u!3{wjR6sP
+zU56X758vTG1L)unyn)l0#au2n$ZF($GXb8$lW2_!b}i#?tmdvB#Zh!e#9qZ)xR~Em
+z69b5de@(8cYLM0*`Z$7<I9}Ivuau&$Yk6;%QqJS61|@a{5D|y4I4WHcv4I<KC`GuA
+z!#FUsxKawtrv`dE@i{zBrpN|-HZ!r63ohbjJcK2v>pDs))ewk&R)A>$Ea&wKe#`((
+zAd!4mS%ynERZ2OQX|Ea?m`KsXqlF*vaxSo(^R|Z+-fxuDEp=TV8<Bw)W-@azN(Y@W
+z=Cp~cSw0VDnROdkXeFQz@isO~DVK1il+r_0N@*v+b?i?d)ih;z5O?6-x~@lwtdGC&
+zK?3?3@8j3>hBnslCGHyMn4KLgIx-8rF$(V`fB_}H;hU`e{S6CV!2-_YyQz#Q5W|b7
+z;+vkZjR$aBQq^hz3w(i>@cpy^s^oJx1B0q)HGt07b$xI!2ho^+J+9!Vq-s|H1N8gQ
+z8Ib{{lun9sCV`wSrJTW9DP=a}baUQ4xDT&S0${MS%lH(BODS_1tiqtYw(&`N{Cw)+
+z9Dc!phDPR62PYEjt`ux$-L~*vs<`O`8XRB9XIF6?k0kI;zVD|MA5982CjoFaRr@eD
+z8mC<IZ0P60H|6d>!_T?%f$)ytew@eW_%=1LYsa$?5l=_N<%o#Y)z#SP9ueyi@oYpa
+z48=JS5g$jyGZ8U6aZ45vkK={push;FY96hF6jyi^?_}#$;Z8iC&tI#mYGYC(T1*#v
+zF^!{>zhme?iqy&yp2B0eHM^xYN(yjmTraR&8Ad}$)rh7dhOU{k;BLnK6CWk_Thjno
+z&tOlC5#TU@*|gp_v;A5dvhv?|0x(Jg%h_zSCurXXv~*ML7pto3?fu)?8`F$`0OHMc
+Uu>{dYKL7v#07*qoM6N<$f}dlntpET3
+
+literal 0
+HcmV?d00001
+
+diff --git a/res/drawable/ic_settings_ethernet.xml b/res/drawable/ic_settings_ethernet.xml
+new file mode 100644
+index 0000000..d35f3f7
+--- /dev/null
++++ b/res/drawable/ic_settings_ethernet.xml
+@@ -0,0 +1,21 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2008 The Android Open Source Project
++
++     Licensed under the Apache License, Version 2.0 (the "License");
++     you may not use this file except in compliance with the License.
++     You may obtain a copy of the License at
++
++          http://www.apache.org/licenses/LICENSE-2.0
++
++     Unless required by applicable law or agreed to in writing, software
++     distributed under the License is distributed on an "AS IS" BASIS,
++     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++     See the License for the specific language governing permissions and
++     limitations under the License.
++-->
++
++<selector xmlns:android="http://schemas.android.com/apk/res/android">
++    <item android:state_selected="true" android:state_pressed="false" android:drawable="@drawable/ic_settings_ethernet" />
++    <item android:drawable="@drawable/ic_settings_ethernet" />
++</selector>
++
+diff --git a/res/layout/eth_configure.xml b/res/layout/eth_configure.xml
+new file mode 100644
+index 0000000..3f8c91f
+--- /dev/null
++++ b/res/layout/eth_configure.xml
+@@ -0,0 +1,112 @@
++<?xml version="1.0" encoding="utf-8"?>
++<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
++        android:layout_width="fill_parent"
++        android:layout_height="wrap_content">
++
++    <LinearLayout
++            android:layout_width="fill_parent"
++            android:layout_height="wrap_content"
++            android:padding="8dip"
++            android:orientation="vertical">
++
++            <LinearLayout
++                android:id="@+id/table"
++                android:layout_width="fill_parent"
++                android:layout_height="fill_parent"
++                android:orientation="vertical">
++            </LinearLayout>
++
++       <!-- Device list -->
++
++        <TextView android:id="@+id/eth_dev_list_text"
++                style="?android:attr/textAppearanceSmallInverse"
++                android:layout_width="fill_parent"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="8dip"
++                android:text="@string/eth_dev_list" />
++
++        <!-- The entries will be set programmatically -->
++        <Spinner android:id="@+id/eth_dev_spinner"
++                android:layout_width="fill_parent"
++                android:layout_height="wrap_content" />
++
++        <!-- Connection type -->
++	<TextView android:id="@+id/eth_con_type"
++                style="?android:attr/textAppearanceSmallInverse"
++                android:layout_width="fill_parent"
++                android:layout_height="wrap_content"
++                android:layout_marginTop="8dip"
++                android:text="@string/eth_con_type" />
++        <RadioGroup android:id="@+id/con_type"
++                android:layout_width="fill_parent"
++                android:layout_height="wrap_content"
++                >
++                <RadioButton android:id="@+id/dhcp_radio"
++			style="?android:attr/textAppearanceSmallInverse"
++			android:layout_width="fill_parent"
++			android:layout_height="wrap_content"
++			android:text="@string/eth_con_type_dhcp"
++                ></RadioButton>
++                <RadioButton android:id="@+id/manual_radio"
++			style="?android:attr/textAppearanceSmallInverse"
++			android:layout_width="fill_parent"
++			android:layout_height="wrap_content"
++			android:text="@string/eth_con_type_manual"
++                ></RadioButton>
++        </RadioGroup>
++
++        <!-- IP address -->
++        <LinearLayout android:id="@+id/enterprise_wrapper"
++            android:layout_width="fill_parent"
++            android:layout_height="wrap_content"
++            android:padding="0dip"
++            android:orientation="vertical">
++                <TextView android:id="@+id/ipaddr_text"
++                        style="?android:attr/textAppearanceSmallInverse"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="8dip"
++                        android:text="@string/eth_ipaddr" />
++                <EditText android:id="@+id/ipaddr_edit"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="2dip"
++                        android:singleLine="true" />
++                <TextView android:id="@+id/netmask_text"
++                        style="?android:attr/textAppearanceSmallInverse"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="8dip"
++                        android:text="@string/eth_mask" />
++                <EditText android:id="@+id/netmask_edit"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="2dip"
++                        android:singleLine="true" />
++                <TextView android:id="@+id/dns_text"
++                        style="?android:attr/textAppearanceSmallInverse"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="8dip"
++                        android:text="@string/eth_dns" />
++                <EditText android:id="@+id/eth_dns_edit"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="2dip"
++                        android:singleLine="true" />
++                <TextView android:id="@+id/gw_text"
++                        style="?android:attr/textAppearanceSmallInverse"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="8dip"
++                        android:text="@string/eth_gw" />
++                <EditText android:id="@+id/eth_gw_edit"
++                        android:layout_width="fill_parent"
++                        android:layout_height="wrap_content"
++                        android:layout_marginTop="2dip"
++                        android:singleLine="true" />
++        </LinearLayout>
++
++    </LinearLayout>
++
++</ScrollView>
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 90b1446..ebd0214 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -1152,6 +1152,25 @@
+     <!-- Explanation of the Android Beam feature in the Android Beam settings panel. The use of "beam" here is as a verb and not considered trademarked. [CHAR LIMIT=NONE] -->
+     <string name="android_beam_explained">When this feature is turned on, you can beam app content to another NFC-capable device by holding the devices close together. For example, you can beam Browser pages, YouTube videos, People contacts, and more.\n\nJust bring the devices together (typically back to back) and then touch your screen. The app determines what gets beamed.</string>
+ 
++    <!-- Ethernet configuration dialog -->
++    <string name="eth_config_title">Configure Ethernet device</string>
++    <string name="eth_setting">Ethernet setting</string>
++    <string name="eth_dev_list">Ethernet Devices:</string>
++    <string name="eth_con_type">Connection Type</string>
++    <string name="eth_con_type_dhcp">DHCP</string>
++    <string name="eth_con_type_manual">Static IP</string>
++    <string name="eth_dns">DNS address</string>
++    <string name="eth_gw">Gateway address</string>
++    <string name="eth_ipaddr">IP address</string>
++    <string name="eth_quick_toggle_title">Ethernet</string>
++    <string name="eth_quick_toggle_summary">Turn on Ethernet</string>
++    <string name="eth_radio_ctrl_title">Ethernet configuration</string>
++    <string name="eth_conf_perf_title">Ethernet configuration</string>
++    <string name="eth_conf_summary">Configure Ethernet devices</string>
++    <string name="eth_mask">Netmask</string>
++    <string name="eth_toggle_summary_off">Turn off Ethernet</string>
++    <string name="eth_toggle_summary_on">Turn on Ethernet</string>
++
+     <!-- Wi-Fi Settings --> <skip />
+     <!-- Used in the 1st-level settings screen to turn on Wi-Fi -->
+     <string name="wifi_quick_toggle_title">Wi-Fi</string>
+diff --git a/res/xml/ethernet_settings.xml b/res/xml/ethernet_settings.xml
+new file mode 100644
+index 0000000..dc3455c
+--- /dev/null
++++ b/res/xml/ethernet_settings.xml
+@@ -0,0 +1,31 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2008 The Android Open Source Project
++
++     Licensed under the Apache License, Version 2.0 (the "License");
++     you may not use this file except in compliance with the License.
++     You may obtain a copy of the License at
++
++          http://www.apache.org/licenses/LICENSE-2.0
++
++     Unless required by applicable law or agreed to in writing, software
++     distributed under the License is distributed on an "AS IS" BASIS,
++     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++     See the License for the specific language governing permissions and
++     limitations under the License.
++-->
++
++<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
++        android:title="@string/eth_radio_ctrl_title">
++        <!-- Programmatically will have dynamic summary, but we provide the fallback summary. -->
++        <CheckBoxPreference
++            android:key="toggle_eth"
++            android:title="@string/eth_quick_toggle_title"
++            android:summaryOn="@string/eth_toggle_summary_off"
++            android:summaryOff="@string/eth_toggle_summary_on"
++            android:persistent="false" />
++        <Preference
++            android:title="@string/eth_conf_perf_title"
++            android:summary="@string/eth_conf_summary"
++            android:key="ETHERNET_config"
++            android:persistent="false" />
++</PreferenceScreen>
+diff --git a/res/xml/settings_headers.xml b/res/xml/settings_headers.xml
+index 0f4dbb3..3cfc115 100644
+--- a/res/xml/settings_headers.xml
++++ b/res/xml/settings_headers.xml
+@@ -21,6 +21,13 @@
+     <!-- WIRELESS and NETWORKS -->
+     <header android:title="@string/header_category_wireless_networks" />
+ 
++   <!-- Ethernet -->
++   <header
++        android:id="@+id/ethernet_settings"
++        android:title="@string/eth_radio_ctrl_title"
++        android:icon="@drawable/ic_settings_ethernet"
++        android:fragment="com.android.settings.ethernet.EthernetSettings"/>
++
+     <!-- Wifi -->
+     <header
+         android:id="@+id/wifi_settings"
+diff --git a/src/com/android/settings/ethernet/EthernetConfigDialog.java b/src/com/android/settings/ethernet/EthernetConfigDialog.java
+new file mode 100644
+index 0000000..f7c2c25
+--- /dev/null
++++ b/src/com/android/settings/ethernet/EthernetConfigDialog.java
+@@ -0,0 +1,214 @@
++/*
++ * Copyright (C) 2010 The Android-x86 Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * Author: Yi Sun <beyounn@gmail.com>
++ */
++
++package com.android.settings.ethernet;
++
++
++import java.util.List;
++
++import com.android.settings.R;
++
++import android.app.AlertDialog;
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.DialogInterface;
++import android.content.Intent;
++import android.net.NetworkInfo;
++import android.net.ethernet.EthernetManager;
++import android.net.ethernet.EthernetDevInfo;
++import android.os.Bundle;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.AdapterView;
++import android.widget.ArrayAdapter;
++import android.widget.CheckBox;
++import android.widget.EditText;
++import android.widget.RadioButton;
++import android.widget.RadioGroup;
++import android.widget.Spinner;
++import android.widget.TextView;
++import android.util.Slog;
++
++public class EthernetConfigDialog extends AlertDialog implements
++        DialogInterface.OnClickListener, AdapterView.OnItemSelectedListener, View.OnClickListener {
++    private final String TAG = "EthernetSettings";
++    private static final boolean localLOGV = false;
++
++    private EthernetEnabler mEthEnabler;
++    private View mView;
++    private Spinner mDevList;
++    private TextView mDevs;
++    private RadioButton mConTypeDhcp;
++    private RadioButton mConTypeManual;
++    private EditText mIpaddr;
++    private EditText mDns;
++    private EditText mGw;
++    private EditText mMask;
++
++    private EthernetLayer mEthLayer;
++    private EthernetManager mEthManager;
++    private EthernetDevInfo mEthInfo;
++    private boolean mEnablePending;
++
++    public EthernetConfigDialog(Context context, EthernetEnabler Enabler) {
++        super(context);
++        mEthLayer = new EthernetLayer(this);
++        mEthEnabler = Enabler;
++        mEthManager=Enabler.getManager();
++        buildDialogContent(context);
++    }
++
++    public int buildDialogContent(Context context) {
++        this.setTitle(R.string.eth_config_title);
++        this.setView(mView = getLayoutInflater().inflate(R.layout.eth_configure, null));
++        mDevs = (TextView) mView.findViewById(R.id.eth_dev_list_text);
++        mDevList = (Spinner) mView.findViewById(R.id.eth_dev_spinner);
++        mConTypeDhcp = (RadioButton) mView.findViewById(R.id.dhcp_radio);
++        mConTypeManual = (RadioButton) mView.findViewById(R.id.manual_radio);
++        mIpaddr = (EditText)mView.findViewById(R.id.ipaddr_edit);
++        mMask = (EditText)mView.findViewById(R.id.netmask_edit);
++        mDns = (EditText)mView.findViewById(R.id.eth_dns_edit);
++        mGw = (EditText)mView.findViewById(R.id.eth_gw_edit);
++
++        mConTypeDhcp.setChecked(true);
++        mConTypeManual.setChecked(false);
++        mIpaddr.setEnabled(false);
++        mMask.setEnabled(false);
++        mDns.setEnabled(false);
++        mGw.setEnabled(false);
++        mConTypeManual.setOnClickListener(new RadioButton.OnClickListener() {
++            public void onClick(View v) {
++                mIpaddr.setEnabled(true);
++                mDns.setEnabled(true);
++                mGw.setEnabled(true);
++                mMask.setEnabled(true);
++            }
++        });
++
++        mConTypeDhcp.setOnClickListener(new RadioButton.OnClickListener() {
++            public void onClick(View v) {
++                mIpaddr.setEnabled(false);
++                mDns.setEnabled(false);
++                mGw.setEnabled(false);
++                mMask.setEnabled(false);
++            }
++        });
++
++        this.setInverseBackgroundForced(true);
++        this.setButton(BUTTON_POSITIVE, context.getText(R.string.menu_save), this);
++        this.setButton(BUTTON_NEGATIVE, context.getText(R.string.menu_cancel), this);
++        String[] Devs = mEthEnabler.getManager().getDeviceNameList();
++        if (Devs != null) {
++            if (localLOGV)
++                Slog.v(TAG, "found device: " + Devs[0]);
++            updateDevNameList(Devs);
++            if (mEthManager.isConfigured()) {
++                mEthInfo = mEthManager.getSavedConfig();
++                for (int i = 0 ; i < Devs.length; i++) {
++                    if (Devs[i].equals(mEthInfo.getIfName())) {
++                        mDevList.setSelection(i);
++                        break;
++                    }
++                }
++                mIpaddr.setText(mEthInfo.getIpAddress());
++                mGw.setText(mEthInfo.getRouteAddr());
++                mDns.setText(mEthInfo.getDnsAddr());
++                mMask.setText(mEthInfo.getNetMask());
++                if (mEthInfo.getConnectMode().equals(EthernetDevInfo.ETHERNET_CONN_MODE_DHCP)) {
++                    mIpaddr.setEnabled(false);
++                    mDns.setEnabled(false);
++                    mGw.setEnabled(false);
++                    mMask.setEnabled(false);
++                } else {
++                    mConTypeDhcp.setChecked(false);
++                    mConTypeManual.setChecked(true);
++                    mIpaddr.setEnabled(true);
++                    mDns.setEnabled(true);
++                    mGw.setEnabled(true);
++                    mMask.setEnabled(true);
++                }
++            }
++        }
++        return 0;
++    }
++
++    private void handle_saveconf() {
++        EthernetDevInfo info = new EthernetDevInfo();
++        info.setIfName(mDevList.getSelectedItem().toString());
++        if (localLOGV)
++            Slog.v(TAG, "Config device for " + mDevList.getSelectedItem().toString());
++        if (mConTypeDhcp.isChecked()) {
++            info.setConnectMode(EthernetDevInfo.ETHERNET_CONN_MODE_DHCP);
++            info.setIpAddress(null);
++            info.setRouteAddr(null);
++            info.setDnsAddr(null);
++            info.setNetMask(null);
++        } else {
++            info.setConnectMode(EthernetDevInfo.ETHERNET_CONN_MODE_MANUAL);
++            info.setIpAddress(mIpaddr.getText().toString());
++            info.setRouteAddr(mGw.getText().toString());
++            info.setDnsAddr(mDns.getText().toString());
++            info.setNetMask(mMask.getText().toString());
++        }
++        mEthManager.updateDevInfo(info);
++        if (mEnablePending) {
++            mEthManager.setEnabled(true);
++            mEnablePending = false;
++        }
++    }
++
++    public void onClick(DialogInterface dialog, int which) {
++        switch (which) {
++            case BUTTON_POSITIVE:
++                handle_saveconf();
++                break;
++            case BUTTON_NEGATIVE:
++                //Don't need to do anything
++                break;
++            default:
++                Slog.e(TAG,"Unknow button");
++        }
++    }
++
++    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
++
++    }
++
++    public void onNothingSelected(AdapterView<?> parent) {
++
++    }
++
++    public void onClick(View v) {
++
++    }
++
++    public void updateDevNameList(String[] DevList) {
++        if (DevList != null) {
++            ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(
++                    getContext(), android.R.layout.simple_spinner_item, DevList);
++            adapter.setDropDownViewResource(
++                    android.R.layout.simple_spinner_dropdown_item);
++            mDevList.setAdapter(adapter);
++        }
++
++    }
++
++    public void enableAfterConfig() {
++        mEnablePending = true;
++    }
++}
+diff --git a/src/com/android/settings/ethernet/EthernetEnabler.java b/src/com/android/settings/ethernet/EthernetEnabler.java
+new file mode 100644
+index 0000000..c6a6df0
+--- /dev/null
++++ b/src/com/android/settings/ethernet/EthernetEnabler.java
+@@ -0,0 +1,172 @@
++/*
++ * Copyright (C) 2010 The Android-x86 Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * Author: Yi Sun <beyounn@gmail.com>
++ */
++
++package com.android.settings.ethernet;
++
++
++import static android.net.ethernet.EthernetManager.ETHERNET_STATE_DISABLED;
++import static android.net.ethernet.EthernetManager.ETHERNET_STATE_ENABLED;
++import static android.net.ethernet.EthernetManager.ETHERNET_STATE_UNKNOWN;
++
++import com.android.settings.R;
++
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.content.IntentFilter;
++import android.net.NetworkInfo;
++import android.net.ethernet.EthernetManager;
++import android.preference.Preference;
++import android.preference.CheckBoxPreference;
++import android.text.TextUtils;
++import android.util.Config;
++import android.util.Slog;
++import android.widget.Switch;
++
++public class EthernetEnabler implements Preference.OnPreferenceChangeListener {
++    private static final String TAG = "SettingsEthEnabler";
++
++    private static final boolean LOCAL_LOGD = true;
++    //private final IntentFilter mEthStateFilter;
++    private Context mContext;
++    private EthernetManager mEthManager;
++    private CheckBoxPreference mEthCheckBoxPref;
++    private final CharSequence mOriginalSummary;
++    private EthernetConfigDialog mEthConfigDialog;
++
++    private final BroadcastReceiver mEthStateReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            if (intent.getAction().equals(EthernetManager.ETHERNET_STATE_CHANGED_ACTION)) {
++                handleEthStateChanged(
++                        intent.getIntExtra(EthernetManager.EXTRA_ETHERNET_STATE,
++                                EthernetManager.ETHERNET_STATE_UNKNOWN),
++                        intent.getIntExtra(EthernetManager.EXTRA_PREVIOUS_ETHERNET_STATE,
++                                EthernetManager.ETHERNET_STATE_UNKNOWN));
++            } else if (intent.getAction().equals(EthernetManager.NETWORK_STATE_CHANGED_ACTION)) {
++                handleNetworkStateChanged(
++                        (NetworkInfo) intent.getParcelableExtra(EthernetManager.EXTRA_NETWORK_INFO));
++            }
++        }
++    };
++
++    public void setConfigDialog (EthernetConfigDialog Dialog) {
++        mEthConfigDialog = Dialog;
++    }
++
++    public EthernetEnabler(EthernetManager ethernetManager, CheckBoxPreference ethernetCheckBoxPreference) {
++//        mContext = context;
++        mEthCheckBoxPref = ethernetCheckBoxPreference;
++        mEthManager = ethernetManager;
++
++        mOriginalSummary = ethernetCheckBoxPreference.getSummary();
++        ethernetCheckBoxPreference.setPersistent(false);
++        if (mEthManager.getState() == ETHERNET_STATE_ENABLED) {
++            mEthCheckBoxPref.setChecked(true);
++        }
++
++        /*
++        mEthStateFilter = new IntentFilter(EthernetManager.ETHERNET_STATE_CHANGED_ACTION);
++        mEthStateFilter.addAction(EthernetManager.NETWORK_STATE_CHANGED_ACTION);
++        */
++    }
++
++    public EthernetManager getManager() {
++        return mEthManager;
++    }
++
++    public void resume() {
++        mEthCheckBoxPref.setOnPreferenceChangeListener(this);
++    }
++
++    public void pause() {
++        //  mContext.unregisterReceiver(mEthStateReceiver);
++        mEthCheckBoxPref.setOnPreferenceChangeListener(null);
++    }
++
++    public boolean onPreferenceChange(Preference preference, Object newValue) {
++        setEthEnabled((Boolean)newValue);
++        return false;
++    }
++
++    private void setEthEnabled(final boolean enable) {
++
++        int state = mEthManager.getState();
++
++        Slog.i(TAG,"Show configuration dialog " + enable);
++        // Disable button
++        mEthCheckBoxPref.setEnabled(false);
++
++        if (state != ETHERNET_STATE_ENABLED && enable) {
++            if (mEthManager.isConfigured() != true) {
++                // Now, kick off the setting dialog to get the configurations
++                mEthConfigDialog.enableAfterConfig();
++                mEthConfigDialog.show();
++            } else {
++                mEthManager.setEnabled(enable);
++            }
++        } else {
++            mEthManager.setEnabled(enable);
++        }
++
++        mEthCheckBoxPref.setChecked(enable);
++        // Disable button
++        mEthCheckBoxPref.setEnabled(true);
++    }
++
++    private void handleEthStateChanged(int ethState, int previousEthState) {
++
++    }
++
++    private void handleNetworkStateChanged(NetworkInfo networkInfo) {
++        if (LOCAL_LOGD) {
++            Slog.d(TAG, "Received network state changed to " + networkInfo);
++        }
++    }
++
++    private boolean isEnabledByDependency() {
++        Preference dep = getDependencyPreference();
++        if (dep == null) {
++            return true;
++        }
++
++        return !dep.shouldDisableDependents();
++    }
++
++    private Preference getDependencyPreference() {
++        String depKey = mEthCheckBoxPref.getDependency();
++        if (TextUtils.isEmpty(depKey)) {
++            return null;
++        }
++
++        return mEthCheckBoxPref.getPreferenceManager().findPreference(depKey);
++    }
++
++    private static String getHumanReadableEthState(int wifiState) {
++        switch (wifiState) {
++            case ETHERNET_STATE_DISABLED:
++                return "Disabled";
++            case ETHERNET_STATE_ENABLED:
++                return "Enabled";
++            case ETHERNET_STATE_UNKNOWN:
++                return "Unknown";
++            default:
++                return "Some other state!";
++        }
++    }
++}
+diff --git a/src/com/android/settings/ethernet/EthernetLayer.java b/src/com/android/settings/ethernet/EthernetLayer.java
+new file mode 100644
+index 0000000..b712c35
+--- /dev/null
++++ b/src/com/android/settings/ethernet/EthernetLayer.java
+@@ -0,0 +1,68 @@
++/*
++ * Copyright (C) 2010 The Android-x86 Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * Author: Yi Sun <beyounn@gmail.com>
++ */
++
++package com.android.settings.ethernet;
++
++import static android.net.ethernet.EthernetManager.ETHERNET_DEVICE_SCAN_RESULT_READY;
++
++import com.android.settings.R;
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.content.IntentFilter;
++import android.net.NetworkInfo;
++import android.net.NetworkInfo.DetailedState;
++import android.net.NetworkInfo.State;
++import android.net.ethernet.EthernetManager;
++import android.os.Handler;
++import android.os.Message;
++import android.provider.Settings;
++import android.text.TextUtils;
++import android.util.Config;
++
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.Comparator;
++import java.util.List;
++
++public class EthernetLayer {
++    private static final String TAG = "EthernetLayer";
++
++    private EthernetManager mEthManager;
++    private String[] mDevList;
++    private EthernetConfigDialog mDialog;
++
++    EthernetLayer (EthernetConfigDialog configdialog) {
++        mDialog = configdialog;
++    }
++
++    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            final String action = intent.getAction();
++            if (action.equals(EthernetManager.ETHERNET_DEVICE_SCAN_RESULT_READY)) {
++                handleDevListChanges();
++            }
++        }
++    };
++
++    private void handleDevListChanges() {
++        mDevList = mEthManager.getDeviceNameList();
++        mDialog.updateDevNameList(mDevList);
++    }
++}
+diff --git a/src/com/android/settings/ethernet/EthernetSettings.java b/src/com/android/settings/ethernet/EthernetSettings.java
+new file mode 100644
+index 0000000..eeb93c7
+--- /dev/null
++++ b/src/com/android/settings/ethernet/EthernetSettings.java
+@@ -0,0 +1,92 @@
++/*
++ * Copyright (C) 2010 The Android-x86 Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * Author: Yi Sun <beyounn@gmail.com>
++ */
++
++package com.android.settings.ethernet;
++
++import com.android.settings.R;
++import com.android.settings.SettingsPreferenceFragment;
++
++import android.app.Activity;
++import android.content.Context;
++import android.net.ethernet.EthernetManager;
++import android.content.DialogInterface;
++import android.os.Bundle;
++import android.preference.CheckBoxPreference;
++import android.preference.Preference;
++import android.preference.PreferenceActivity;
++import android.preference.PreferenceScreen;
++import android.widget.Switch;
++import android.util.Log;
++
++public class EthernetSettings extends SettingsPreferenceFragment {
++    private static final String LOG_TAG = "Ethernet";
++    private static final String KEY_TOGGLE_ETH = "toggle_eth";
++    private static final String KEY_CONF_ETH = "ETHERNET_config";
++
++    private EthernetEnabler mEthEnabler;
++    private EthernetConfigDialog mEthConfigDialog;
++    private Preference mEthConfigPref;
++
++    @Override
++    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
++        super.onPreferenceTreeClick(preferenceScreen, preference);
++
++        if (preference == mEthConfigPref) {
++            mEthConfigDialog.show();
++        }
++        return false;
++    }
++
++    @Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++        addPreferencesFromResource(R.xml.ethernet_settings);
++
++        final Activity activity = getActivity();
++        Switch actionBarSwitch = new Switch(activity);
++        CheckBoxPreference ethernet = (CheckBoxPreference) findPreference(KEY_TOGGLE_ETH);
++
++        final PreferenceScreen preferenceScreen = getPreferenceScreen();
++        mEthConfigPref = preferenceScreen.findPreference(KEY_CONF_ETH);
++        /*
++         * TO DO:
++         * Add new perference screen for Etherenet Configuration
++         */
++
++        initToggles();
++    }
++
++    @Override
++    public void onResume() {
++        super.onResume();
++        mEthEnabler.resume();
++    }
++
++    @Override
++    public void onPause() {
++        super.onPause();
++        mEthEnabler.pause();
++    }
++
++    private void initToggles() {
++        mEthEnabler = new EthernetEnabler((EthernetManager) getSystemService(Context.ETHERNET_SERVICE), (CheckBoxPreference) findPreference(KEY_TOGGLE_ETH));
++        mEthConfigDialog = new EthernetConfigDialog(getActivity(), mEthEnabler);
++        mEthEnabler.setConfigDialog(mEthConfigDialog);
++    }
++}
+-- 
+1.7.0.4
+

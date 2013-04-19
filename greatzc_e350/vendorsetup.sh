@@ -1,0 +1,2 @@
+add_lunch_combo greatzc_e350-eng
+add_lunch_combo greatzc_e350-userdebug

@@ -1,0 +1,24 @@
+From 9865933ef1ba1b20258b3597f48961baf43be5c9 Mon Sep 17 00:00:00 2001
+From: ron <ron@nubosoftware.com>
+Date: Mon, 5 Mar 2012 18:24:54 +0200
+Subject: [PATCH] Adding Ethernet patch for android-x86 4.0 RC1 (AOSP 4.03+ )
+
+---
+ core/pathmap.mk |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/core/pathmap.mk b/core/pathmap.mk
+index 60fbfd2..c2fc4d0 100644
+--- a/core/pathmap.mk
++++ b/core/pathmap.mk
+@@ -87,6 +87,7 @@ FRAMEWORKS_BASE_SUBDIRS := \
+ 	    opengl \
+ 	    sax \
+ 	    telephony \
++       ethernet \
+ 	    wifi \
+ 	    keystore \
+ 	    icu4j \
+-- 
+1.7.0.4
+

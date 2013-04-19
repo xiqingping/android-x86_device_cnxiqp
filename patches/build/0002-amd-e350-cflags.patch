@@ -1,0 +1,17 @@
+diff --git a/core/combo/TARGET_linux-x86.mk b/core/combo/TARGET_linux-x86.mk
+index 2fdbad4..7fa35b0 100644
+--- a/core/combo/TARGET_linux-x86.mk
++++ b/core/combo/TARGET_linux-x86.mk
+@@ -98,8 +98,12 @@ TARGET_GLOBAL_CPPFLAGS += \
+ ifeq ($(TARGET_ARCH_VARIANT),x86-atom)
+     TARGET_GLOBAL_CFLAGS += -march=atom -mstackrealign -DUSE_SSSE3 -DUSE_SSE2 -mfpmath=sse
+ else
++ifeq ($(TARGET_ARCH_VARIANT),x86-e350)
++    TARGET_GLOBAL_CFLAGS += -march=amdfam10 -mtune=amdfam10
++else
+     TARGET_GLOBAL_CFLAGS += -march=i686
+ endif
++endif
+ 
+ TARGET_GLOBAL_CFLAGS += -mbionic
+ TARGET_GLOBAL_CFLAGS += -D__ANDROID__

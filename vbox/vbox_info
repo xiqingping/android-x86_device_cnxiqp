@@ -1,0 +1,11 @@
+set -x
+
+vbox_info()
+{
+    return 1
+}
+
+detect_hardware()
+{
+   vbox_info
+}

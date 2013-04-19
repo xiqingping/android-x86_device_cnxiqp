@@ -1,0 +1,2 @@
+PRODUCT_MAKEFILES := $(LOCAL_DIR)/greatzc_e350.mk
+

@@ -1,0 +1,16 @@
+diff --git a/Android.common.mk b/Android.common.mk
+index e8b9006..098ac5b 100644
+--- a/Android.common.mk
++++ b/Android.common.mk
+@@ -24,9 +24,9 @@
+ # use c99 compiler by default
+ ifeq ($(LOCAL_CC),)
+ ifeq ($(LOCAL_IS_HOST_MODULE),true)
+-LOCAL_CC := $(HOST_CC) -std=c99
++LOCAL_CC := $(HOST_CC) -std=gnu99
+ else
+-LOCAL_CC := $(TARGET_CC) -std=c99
++LOCAL_CC := $(TARGET_CC) -std=gnu99
+ endif
+ endif
+ 

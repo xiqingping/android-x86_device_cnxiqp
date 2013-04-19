@@ -1,0 +1,28 @@
+DMIPATH=/sys/class/dmi/id
+
+greatzc_e350_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*)
+			EXTMOD="$EXTMOD hid-multitouch"
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+
+detect_hardware()
+{
+	case "`cat $DMIPATH/uevent`" in
+		*AMDCorporation*)
+			greatzc_e350_info
+			;;
+		*MSI*)
+			greatzc_e350_info
+			;;
+		*)
+			greatzc_e350_info
+			;;
+	esac
+}

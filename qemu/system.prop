@@ -1,0 +1,6 @@
+# system.prop for inspiron1420
+ro.sf.lcd_density=160
+ro.sf.install_non_market_apps=1
+keyguard.no_require_sim=1
+ro.hardware=qemu
+# end system.prop for inspiron1420

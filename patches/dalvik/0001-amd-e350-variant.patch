@@ -1,0 +1,14 @@
+diff --git a/vm/ReconfigureDvm.mk b/vm/ReconfigureDvm.mk
+index 564ebea..cbb9d21 100644
+--- a/vm/ReconfigureDvm.mk
++++ b/vm/ReconfigureDvm.mk
+@@ -23,6 +23,9 @@ dvm_arch_variant := $(TARGET_ARCH_VARIANT)
+ ifeq ($(dvm_arch_variant),x86-atom)
+   dvm_arch_variant := x86
+ endif
++ifeq ($(dvm_arch_variant),x86-e350)
++  dvm_arch_variant := x86
++endif
+ 
+ include $(LOCAL_PATH)/Dvm.mk
+ 

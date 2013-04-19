@@ -1,0 +1,6 @@
+on boot
+    setprop rild.libpath /system/lib/libreference-ril.so
+    setprop rild.libargs "-d /dev/ttyUSB0"
+
+    setkeycode 0xe025 172
+    setkeycode 0xe027 1

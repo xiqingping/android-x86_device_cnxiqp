@@ -1,0 +1,36 @@
+From b998d3aebdedfca47a0d4008371d4f0eee4d4aee Mon Sep 17 00:00:00 2001
+From: ron <ron@nubosoftware.com>
+Date: Mon, 5 Mar 2012 18:29:12 +0200
+Subject: [PATCH] Adding Ethernet patch ^Cr android-x86 4.0 RC1 (AOSP 4.03+ )
+
+---
+ .../android/providers/downloads/DownloadInfo.java  |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/src/com/android/providers/downloads/DownloadInfo.java b/src/com/android/providers/downloads/DownloadInfo.java
+index 00b1045..a26aa60 100644
+--- a/src/com/android/providers/downloads/DownloadInfo.java
++++ b/src/com/android/providers/downloads/DownloadInfo.java
+@@ -417,6 +417,9 @@ public class DownloadInfo {
+             case ConnectivityManager.TYPE_WIFI:
+                 return DownloadManager.Request.NETWORK_WIFI;
+ 
++            case ConnectivityManager.TYPE_ETHERNET:
++                return DownloadManager.Request.NETWORK_ETHERNET;
++
+             default:
+                 return 0;
+         }
+@@ -433,6 +436,9 @@ public class DownloadInfo {
+         if (networkType == ConnectivityManager.TYPE_WIFI) {
+             return NETWORK_OK; // anything goes over wifi
+         }
++        if (networkType == ConnectivityManager.TYPE_ETHERNET) {
++            return NETWORK_OK; // anything goes over ethernet
++        }
+         Long maxBytesOverMobile = mSystemFacade.getMaxBytesOverMobile();
+         if (maxBytesOverMobile != null && mTotalBytes > maxBytesOverMobile) {
+             return NETWORK_UNUSABLE_DUE_TO_SIZE;
+-- 
+1.7.0.4
+
